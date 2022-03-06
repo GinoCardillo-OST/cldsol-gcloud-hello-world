@@ -9,14 +9,36 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    invoker
+}
+
 dependencies {
+    implementation platform('com.google.cloud:libraries-bom:24.4.0')
+    // Every function needs this dependency to get the Functions Framework API.
+    compileOnly 'com.google.cloud.functions:functions-framework-api:1.0.4'
+
+    // To run function locally using Functions Framework's local invoker
+    invoker 'com.google.cloud.functions.invoker:java-function-invoker:1.1.0'
+
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-
-    implementation platform('com.google.cloud:libraries-bom:24.4.0')
-    implementation 'com.google.cloud:google-cloud-bigquery'
 }
 
 test {
     useJUnitPlatform()
+}
+
+// Register a "runFunction" task to run the function locally
+tasks.register("runFunction", JavaExec) {
+    main = 'com.google.cloud.functions.invoker.runner.Invoker'
+    classpath(configurations.invoker)
+    inputs.files(configurations.runtimeClasspath, sourceSets.main.output)
+    args(
+            '--target', project.findProperty('run.functionTarget') ?: 'functions.HelloWorld',
+            '--port', project.findProperty('run.port') ?: 8081
+    )
+    doFirst {
+        args('--classpath', files(configurations.runtimeClasspath, sourceSets.main.output).asPath)
+    }
 }
