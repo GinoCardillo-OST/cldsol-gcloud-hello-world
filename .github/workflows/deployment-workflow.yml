@@ -1,0 +1,26 @@
+name: Continuous Deployment
+on:
+  push:
+    branches:
+      - master
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
+
+      - id: deploy
+        name: Deploy Function
+        uses: google-github-actions/deploy-cloud-functions@v0
+        with:
+          name: my-first-function
+          runtime: java11
+
+      - id: test
+        run: 'curl "${{ steps.deploy.outputs.url }}"'
