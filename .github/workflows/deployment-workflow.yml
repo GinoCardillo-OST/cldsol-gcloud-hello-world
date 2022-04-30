@@ -20,6 +20,7 @@ jobs:
         uses: google-github-actions/deploy-cloud-functions@v0
         with:
           name: my-first-function
+          entry_point: functions.HelloWorld
           runtime: java11
 
       - id: test
